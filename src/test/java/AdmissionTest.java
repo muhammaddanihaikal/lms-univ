@@ -1,0 +1,116 @@
+import config.env_target;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.Select;
+import org.openqa.selenium.support.ui.WebDriverWait;
+
+import java.time.Duration;
+
+public class AdmissionTest extends env_target {
+    private WebDriverWait wait;
+
+    @BeforeEach
+    void setUp() {
+        // setup driver chrome
+        System.setProperty("webdriver.chrome.driver", "src\\main\\resources\\drivers\\chromedriver.exe");
+        ChromeOptions options = new ChromeOptions();
+        options.addArguments("--incognito", "--disable-save-password-bubble");
+        driver = new ChromeDriver(options);
+
+        // buka browser
+        driver.manage().window().maximize();
+        driver.get(baseUrl);
+
+        // inisialisasi explicit wait
+        wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+
+        // set zoom ke 75%
+        ((JavascriptExecutor) driver).executeScript("document.body.style.zoom='80%'");
+
+    }
+
+    @AfterEach
+    void tearDown() {
+        // tutup browser
+        if (driver != null) driver.quit();
+    }
+
+    @Test
+    void admission(){
+        wait.until(ExpectedConditions.elementToBeClickable(By.linkText("Admission"))).click();
+
+        wait.until(ExpectedConditions.urlToBe(baseUrl+"admission"));
+        wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("root")));
+
+        // ---PERSONAL INFORMATION---
+        // full name
+        driver.findElement(By.id("field-:r5:")).sendKeys("Ahmad Sahroni"+ Utils.randomNumber(2));
+        // nisn
+        driver.findElement(By.id("field-:r7:")).sendKeys( Utils.randomNumber(8));
+        // gender
+        new Select(driver.findElement(By.id("field-:r9:"))).selectByVisibleText("Male");
+        // religion
+        new Select(driver.findElement(By.id("field-:rb:"))).selectByVisibleText("Islam");
+        // place of birth
+        driver.findElement(By.id("field-:rd:")).sendKeys("DKI Jakarta");
+        // date of birth
+        driver.findElement(By.id("field-:rf:")).sendKeys("01-01-2000");
+        // complete address
+        driver.findElement(By.id("field-:rh:")).sendKeys("Jalan Pesanggrahan Timur No.17 Cengkareng Barat, Cengkareng, Jakarta Barat, DKI Jakarta, 57128");
+        // email
+        driver.findElement(By.id("field-:rj:")).sendKeys("ahmadsahroni"+ Utils.randomNumber(2)+"@gmail.com");
+        // phone number
+        driver.findElement(By.id("field-:rl:")).sendKeys("08"+ Utils.randomNumber(10));
+
+        // ---PARENT/GUARDIAN INFORMATION---
+        // name
+        driver.findElement(By.id("field-:rn:")).sendKeys("Parent Ahmad Sahroni");
+        // phone
+        driver.findElement(By.id("field-:rp:")).sendKeys("08"+Utils.randomNumber(10));
+        // email
+        driver.findElement(By.id("field-:rr:")).sendKeys("parentahmadsahroni@gmail.com");
+
+        // ---EMERGENCY CONTACT---
+        // name
+        driver.findElement(By.id("field-:rt:")).sendKeys("Sibling Ahmad Sahroni");
+        // phone
+        driver.findElement(By.id("field-:rv:")).sendKeys("08"+Utils.randomNumber(10));
+        // relationship
+        new Select(driver.findElement(By.id("field-:r11:"))).selectByVisibleText("Sibling");
+
+        // ---EDUCATIONAL BACKGROUND---
+        // high scool name
+        driver.findElement(By.id("field-:r13:")).sendKeys("Sibling Ahmad Sahroni");
+        // graduation year
+        new Select(driver.findElement(By.id("field-:r15:"))).selectByVisibleText("2023");
+        // previous educational level
+        new Select(driver.findElement(By.id("field-:r17:"))).selectByVisibleText("Senior High School (SMA/SMK)");
+
+        // ---PROGRAM SELECTION---
+        new Select(driver.findElement(By.id("field-:r19:"))).selectByIndex(2);
+        // class type
+        new Select(driver.findElement(By.id("field-:r1b:"))).selectByIndex(2);
+        // entry path
+        new Select(driver.findElement(By.id("field-:r1d:"))).selectByIndex(2);
+
+        //---SUPPORTING DOCUMENTS---
+        String pathTestFilePdf = "C:\\Users\\acer\\IdeaProjects\\lms-univ\\src\\main\\resources\\test-files\\test-pdf.pdf";
+        // academic transcript
+        driver.findElement(By.id("field-:r1f:")).sendKeys(pathTestFilePdf);
+        // diploma/graduation certificate
+        driver.findElement(By.id("field-:r1h:")).sendKeys(pathTestFilePdf);
+        // national id card/KTP
+        driver.findElement(By.id("field-:r1j:")).sendKeys(pathTestFilePdf);
+        // family card/KK
+        driver.findElement(By.id("field-:r1l:")).sendKeys(pathTestFilePdf);
+
+        // klik button submit
+        driver.findElement(By.xpath("//button[normalize-space()='Submit Application']")).click();
+    }
+}
