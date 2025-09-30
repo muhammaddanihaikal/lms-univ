@@ -43,12 +43,14 @@ public class AdmissionTest extends env_target {
 
     @Test
     void admission(){
+        // klik menu admission
         wait.until(ExpectedConditions.elementToBeClickable(By.linkText("Admission"))).click();
 
+        // pastikan halaman admission siap
         wait.until(ExpectedConditions.urlToBe(baseUrl+"admission"));
         wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("root")));
 
-        // ---PERSONAL INFORMATION---
+        // --- personal information ---
         // full name
         driver.findElement(By.id("field-:r5:")).sendKeys("Ahmad Sahroni"+ Utils.randomNumber(2));
         // nisn
@@ -68,7 +70,7 @@ public class AdmissionTest extends env_target {
         // phone number
         driver.findElement(By.id("field-:rl:")).sendKeys("08"+ Utils.randomNumber(10));
 
-        // ---PARENT/GUARDIAN INFORMATION---
+        // --- parent/guardian information ---
         // name
         driver.findElement(By.id("field-:rn:")).sendKeys("Parent Ahmad Sahroni");
         // phone
@@ -76,7 +78,7 @@ public class AdmissionTest extends env_target {
         // email
         driver.findElement(By.id("field-:rr:")).sendKeys("parentahmadsahroni@gmail.com");
 
-        // ---EMERGENCY CONTACT---
+        // --- emergency contact ---
         // name
         driver.findElement(By.id("field-:rt:")).sendKeys("Sibling Ahmad Sahroni");
         // phone
@@ -84,7 +86,7 @@ public class AdmissionTest extends env_target {
         // relationship
         new Select(driver.findElement(By.id("field-:r11:"))).selectByVisibleText("Sibling");
 
-        // ---EDUCATIONAL BACKGROUND---
+        // --- educational background ---
         // high scool name
         driver.findElement(By.id("field-:r13:")).sendKeys("Sibling Ahmad Sahroni");
         // graduation year
@@ -92,14 +94,14 @@ public class AdmissionTest extends env_target {
         // previous educational level
         new Select(driver.findElement(By.id("field-:r17:"))).selectByVisibleText("Senior High School (SMA/SMK)");
 
-        // ---PROGRAM SELECTION---
+        // --- program selection ---
         new Select(driver.findElement(By.id("field-:r19:"))).selectByIndex(2);
         // class type
         new Select(driver.findElement(By.id("field-:r1b:"))).selectByIndex(2);
         // entry path
         new Select(driver.findElement(By.id("field-:r1d:"))).selectByIndex(2);
 
-        //---SUPPORTING DOCUMENTS---
+        //--- supporting documents ---
         String pathTestFilePdf = "C:\\Users\\acer\\IdeaProjects\\lms-univ\\src\\main\\resources\\test-files\\test-pdf.pdf";
         // academic transcript
         driver.findElement(By.id("field-:r1f:")).sendKeys(pathTestFilePdf);
