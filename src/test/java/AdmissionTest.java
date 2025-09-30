@@ -12,6 +12,8 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.time.Duration;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 public class AdmissionTest extends env_target {
     private WebDriverWait wait;
 
@@ -32,7 +34,6 @@ public class AdmissionTest extends env_target {
 
         // set zoom ke 75%
         ((JavascriptExecutor) driver).executeScript("document.body.style.zoom='80%'");
-
     }
 
     @AfterEach
@@ -97,9 +98,9 @@ public class AdmissionTest extends env_target {
         // --- program selection ---
         new Select(driver.findElement(By.id("field-:r19:"))).selectByIndex(2);
         // class type
-        new Select(driver.findElement(By.id("field-:r1b:"))).selectByIndex(2);
+        new Select(driver.findElement(By.id("field-:r1b:"))).selectByIndex(1);
         // entry path
-        new Select(driver.findElement(By.id("field-:r1d:"))).selectByIndex(2);
+        new Select(driver.findElement(By.id("field-:r1d:"))).selectByIndex(1);
 
         //--- supporting documents ---
         String pathTestFilePdf = "C:\\Users\\acer\\IdeaProjects\\lms-univ\\src\\main\\resources\\test-files\\test-pdf.pdf";
@@ -114,5 +115,9 @@ public class AdmissionTest extends env_target {
 
         // klik button submit
         driver.findElement(By.xpath("//button[normalize-space()='Submit Application']")).click();
+
+        // validasi muncul notif sukses
+        String toastTitle = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("toast-1-title"))).getText();
+        assertEquals("Application Submitted Successfully!", toastTitle);
     }
 }
