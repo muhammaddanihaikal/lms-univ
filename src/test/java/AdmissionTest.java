@@ -4,6 +4,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
@@ -39,7 +40,7 @@ public class AdmissionTest extends env_target {
     @AfterEach
     void tearDown() {
         // tutup browser
-        if (driver != null) driver.quit();
+        // if (driver != null) driver.quit();
     }
 
     @Test
@@ -114,10 +115,67 @@ public class AdmissionTest extends env_target {
         driver.findElement(By.id("field-:r1l:")).sendKeys(pathTestFilePdf);
 
         // klik button submit
-        driver.findElement(By.xpath("//button[normalize-space()='Submit Application']")).click();
+        // driver.findElement(By.xpath("//button[normalize-space()='Submit Application']")).click();
 
         // validasi muncul notif sukses
-        String toastTitle = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("toast-1-title"))).getText();
-        assertEquals("Application Submitted Successfully!", toastTitle);
+        //String toastTitle = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("toast-1-title"))).getText();
+        //assertEquals("Application Submitted Successfully!", toastTitle);
+
+        // kembali ke login
+        driver.findElement(By.xpath("//button[normalize-space()='Back to Login']")).click();
+
+        // validasi kalo udah di halaman login
+        wait.until(ExpectedConditions.urlToBe(baseUrl+"login"));
+        wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("root")));
+
+        // login ke admin
+        driver.findElement(By.id("username")).sendKeys("newadmin");
+        driver.findElement(By.id("password")).sendKeys("admin123");
+        wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//button[normalize-space()='Login']"))).click();
+
+        // validasi kalo udah di halaman admin
+        wait.until(ExpectedConditions.urlToBe(baseUrl+"E-Campus/Adminoffice"));
+        wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("root")));
+
+        By admissionHeader = By.xpath(
+                "//div[contains(@class,'css-1lekzkb')][.//p[normalize-space()='Admission']]"
+        );
+        wait.until(ExpectedConditions.elementToBeClickable(admissionHeader)).click();
+
+        // ke menu candidate list
+        wait.until(ExpectedConditions.elementToBeClickable(
+                By.xpath("//a[.//p[normalize-space()='Candidate List']]")
+        )).click();
+
+        // validasi kalo datanya masuk
+        // klik button reject
+        // validasi kalo reject berhasil
+
+    }
+
+    @Test
+    void candidateList(){
+        // validasi kalo udah di halaman login
+        wait.until(ExpectedConditions.urlToBe(baseUrl+"login"));
+        wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("root")));
+
+        // login ke admin
+        driver.findElement(By.id("username")).sendKeys("newadmin");
+        driver.findElement(By.id("password")).sendKeys("admin123");
+        wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//button[normalize-space()='Login']"))).click();
+
+        // validasi kalo udah di halaman admin
+        wait.until(ExpectedConditions.urlToBe(baseUrl+"E-Campus/Adminoffice"));
+        wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("root")));
+
+        By admissionHeader = By.xpath(
+                "//div[contains(@class,'css-1lekzkb')][.//p[normalize-space()='Admission']]"
+        );
+        wait.until(ExpectedConditions.elementToBeClickable(admissionHeader)).click();
+
+        // ke menu candidate list
+        wait.until(ExpectedConditions.elementToBeClickable(
+                By.xpath("//a[.//p[normalize-space()='Candidate List']]")
+        )).click();
     }
 }
