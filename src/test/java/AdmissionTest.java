@@ -139,10 +139,18 @@ public class AdmissionTest extends env_target {
         // pastikan toast muncul
         wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("toast-1")));
 
-        // klik tombol close (fallback ke JS kalau intercepted)
-        By closeBtn = By.xpath("//div[@id='toast-1']//button[@aria-label='Close']");
-        ((JavascriptExecutor) driver).executeScript("arguments[0].click();",
-                driver.findElement(closeBtn));
+        // cari tombol close
+        WebElement closeBtn = wait.until(
+                ExpectedConditions.presenceOfElementLocated(
+                        By.xpath("//div[@id='toast-1']//button[@aria-label='Close']")
+                )
+        );
+
+        // klik pakai JS
+        Utils.clickForce(driver, closeBtn);
+
+        // validasi toast udah hilang
+        wait.until(ExpectedConditions.invisibilityOfElementLocated(By.id("toast-1")));
 
         // kembali ke login
         driver.findElement(By.xpath("//button[normalize-space()='Back to Login']")).click();
