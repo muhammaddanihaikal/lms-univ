@@ -12,6 +12,8 @@ import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.time.Duration;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -115,41 +117,35 @@ public class AdmissionTest extends env_target {
         driver.findElement(By.id("field-:r1l:")).sendKeys(pathTestFilePdf);
 
         // klik button submit
-        // driver.findElement(By.xpath("//button[normalize-space()='Submit Application']")).click();
+        driver.findElement(By.xpath("//button[normalize-space()='Submit Application']")).click();
 
         // validasi muncul notif sukses
-        //String toastTitle = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("toast-1-title"))).getText();
-        //assertEquals("Application Submitted Successfully!", toastTitle);
+        String toastTitle = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("toast-1-title"))).getText();
+        assertEquals("Application Submitted Successfully!", toastTitle);
+
+        // ambil deskripsi toast
+        String toastDesc = wait.until(
+                ExpectedConditions.visibilityOfElementLocated(By.id("toast-1-description"))
+        ).getText();
+
+        // ekstrak Application ID pakai regex (REG + digit)
+        Pattern pattern = Pattern.compile("\\bREG\\d+\\b");
+        Matcher matcher = pattern.matcher(toastDesc);
+
+        // simpan Applicatoin ID
+        String applicationId = matcher.find() ? matcher.group() : null;
+
+        // hapus notifikasi
+        // pastikan toast muncul
+        wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("toast-1")));
+
+        // klik tombol close (fallback ke JS kalau intercepted)
+        By closeBtn = By.xpath("//div[@id='toast-1']//button[@aria-label='Close']");
+        ((JavascriptExecutor) driver).executeScript("arguments[0].click();",
+                driver.findElement(closeBtn));
 
         // kembali ke login
         driver.findElement(By.xpath("//button[normalize-space()='Back to Login']")).click();
-
-        // validasi kalo udah di halaman login
-        wait.until(ExpectedConditions.urlToBe(baseUrl+"login"));
-        wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("root")));
-
-        // login ke admin
-        driver.findElement(By.id("username")).sendKeys("newadmin");
-        driver.findElement(By.id("password")).sendKeys("admin123");
-        wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//button[normalize-space()='Login']"))).click();
-
-        // validasi kalo udah di halaman admin
-        wait.until(ExpectedConditions.urlToBe(baseUrl+"E-Campus/Adminoffice"));
-        wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("root")));
-
-        By admissionHeader = By.xpath(
-                "//div[contains(@class,'css-1lekzkb')][.//p[normalize-space()='Admission']]"
-        );
-        wait.until(ExpectedConditions.elementToBeClickable(admissionHeader)).click();
-
-        // ke menu candidate list
-        wait.until(ExpectedConditions.elementToBeClickable(
-                By.xpath("//a[.//p[normalize-space()='Candidate List']]")
-        )).click();
-
-        // validasi kalo datanya masuk
-        // klik button reject
-        // validasi kalo reject berhasil
 
     }
 
@@ -168,14 +164,38 @@ public class AdmissionTest extends env_target {
         wait.until(ExpectedConditions.urlToBe(baseUrl+"E-Campus/Adminoffice"));
         wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("root")));
 
+        // klik menu admission
         By admissionHeader = By.xpath(
-                "//div[contains(@class,'css-1lekzkb')][.//p[normalize-space()='Admission']]"
+                "//p[normalize-space()='Admission']/ancestor::div[contains(@class,'css-1lekzkb')]"
         );
         wait.until(ExpectedConditions.elementToBeClickable(admissionHeader)).click();
 
-        // ke menu candidate list
+        // klik sub menu candidate list
+        By candidateList = By.xpath(
+                "//p[normalize-space()='Candidate List']/ancestor::a"
+        );
+        wait.until(ExpectedConditions.elementToBeClickable(candidateList)).click();
+
+        // klik button titik 3
+        By actionButton = By.xpath(
+                "//tr[td[normalize-space()='" + "REG2025225108" + "']]//button[@aria-label='Actions']"
+        );
+        wait.until(ExpectedConditions.elementToBeClickable(actionButton)).click();
+
+        // tunggu sampe pop up muncul
+        wait.until(ExpectedConditions.visibilityOfElementLocated(By.className("css-1u2cvaz")
+        ));
+
+        // klik button update status
         wait.until(ExpectedConditions.elementToBeClickable(
-                By.xpath("//a[.//p[normalize-space()='Candidate List']]")
+                By.xpath("//button[.//span[normalize-space()='Update Status']]")
         )).click();
+
+        // klik button reject application
+        wait.until(ExpectedConditions.elementToBeClickable(
+                By.xpath("//button[.//span[normalize-space()='Reject Application']]")
+        )).click();
+
+
     }
 }
