@@ -42,7 +42,7 @@ public class AdmissionTest extends env_target {
     @AfterEach
     void tearDown() {
         // tutup browser
-        // if (driver != null) driver.quit();
+         if (driver != null) driver.quit();
     }
 
     @Test
@@ -146,7 +146,7 @@ public class AdmissionTest extends env_target {
                 )
         );
 
-        // klik pakai JS
+        // klik pakai JS, kalo bandel (button tertutup icon, geser, dll)
         Utils.clickForce(driver, closeBtn);
 
         // validasi toast udah hilang
@@ -154,6 +154,64 @@ public class AdmissionTest extends env_target {
 
         // kembali ke login
         driver.findElement(By.xpath("//button[normalize-space()='Back to Login']")).click();
+
+        // validasi kalo udah di halaman login
+        wait.until(ExpectedConditions.urlToBe(baseUrl+"login"));
+        wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("root")));
+
+        // login ke admin
+        driver.findElement(By.id("username")).sendKeys("newadmin");
+        driver.findElement(By.id("password")).sendKeys("admin123");
+        wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//button[normalize-space()='Login']"))).click();
+
+        // validasi kalo udah di halaman admin
+        wait.until(ExpectedConditions.urlToBe(baseUrl+"E-Campus/Adminoffice"));
+        wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("root")));
+
+        // klik menu admission
+        By admissionHeader = By.xpath(
+                "//p[normalize-space()='Admission']/ancestor::div[contains(@class,'css-1lekzkb')]"
+        );
+        wait.until(ExpectedConditions.elementToBeClickable(admissionHeader)).click();
+
+        // klik sub menu candidate list
+        By candidateList = By.xpath(
+                "//p[normalize-space()='Candidate List']/ancestor::a"
+        );
+        wait.until(ExpectedConditions.elementToBeClickable(candidateList)).click();
+
+        // klik button titik 3
+        By actionButton = By.xpath(
+                "//tr[td[normalize-space()='" + applicationId + "']]//button[@aria-label='Actions']"
+        );
+        wait.until(ExpectedConditions.elementToBeClickable(actionButton)).click();
+
+        // tunggu sampe pop up muncul
+        wait.until(ExpectedConditions.visibilityOfElementLocated(By.className("css-1u2cvaz")
+        ));
+
+        // klik button update status
+        wait.until(ExpectedConditions.elementToBeClickable(
+                By.xpath("//button[.//span[normalize-space()='Update Status']]")
+        )).click();
+
+        // klik button reject application
+        wait.until(ExpectedConditions.elementToBeClickable(
+                By.xpath("//button[.//span[normalize-space()='Reject Application']]")
+        )).click();
+
+        // tunggu sampe statusnya berubah
+        wait.until(ExpectedConditions.textToBe(By.xpath(
+                "//tr[td[normalize-space()='"+applicationId+"']]//td[6]//span"
+        ), "REJECTED"));
+
+        // validasi reject application
+        String statusText = wait.until(
+                ExpectedConditions.visibilityOfElementLocated(
+                        By.xpath("//tr[td[normalize-space()='" + applicationId + "']]//td[6]//span")
+                )
+        ).getText();
+        assertEquals("REJECTED", statusText);
 
     }
 
@@ -186,7 +244,7 @@ public class AdmissionTest extends env_target {
 
         // klik button titik 3
         By actionButton = By.xpath(
-                "//tr[td[normalize-space()='" + "REG2025225108" + "']]//button[@aria-label='Actions']"
+                "//tr[td[normalize-space()='" + "REG2025841551" + "']]//button[@aria-label='Actions']"
         );
         wait.until(ExpectedConditions.elementToBeClickable(actionButton)).click();
 
@@ -203,6 +261,17 @@ public class AdmissionTest extends env_target {
         wait.until(ExpectedConditions.elementToBeClickable(
                 By.xpath("//button[.//span[normalize-space()='Reject Application']]")
         )).click();
+
+        // tunggu sampe statusnya berubah
+        wait.until(ExpectedConditions.textToBe(By.xpath(
+                "//tr[td[normalize-space()='REG2025841551']]//td[6]//span"
+        ), "REJECTED"));
+
+        // ambil statusnya buat divalidasi
+        String statusText = wait.until(
+                ExpectedConditions.visibilityOfElementLocated(By.xpath("//tr[td[normalize-space()='REG2025841551']]//td[6]//span"))).getText();
+        System.out.println("status = "+statusText);
+        assertEquals("REJECTED", statusText);
 
 
     }
