@@ -19,9 +19,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class AdmissionTest extends env_target {
     private WebDriverWait wait;
-    private String studentFullName;
-    private String studentEmail;
-    private String applicationId;
+    private String studentFullName = "Ahmad Sahroni14";
+    private String studentEmail = "ahmadsahroni71@gmail.com";
+    private String applicationId = "REG2025831554";
+    private String studentId = "2373101718";
 
     @BeforeEach
     void setUp() {
@@ -49,15 +50,15 @@ public class AdmissionTest extends env_target {
     }
 
     @Test
-    void admissionRejectCandidate(){
-        createStudentData();
-        rejectStudent();
-    }
-
-    @Test
     void admissionApproveCandidate(){
         createStudentData();
         approveStudent();
+    }
+
+    @Test
+    void admissionRejectCandidate(){
+        createStudentData();
+        rejectStudent();
     }
 
     // membuat data mahasiswa
@@ -88,6 +89,7 @@ public class AdmissionTest extends env_target {
         driver.findElement(By.id("field-:rh:")).sendKeys("Jalan Pesanggrahan Timur No.17 Cengkareng Barat, Cengkareng, Jakarta Barat, DKI Jakarta, 57128");
         // email
         driver.findElement(By.id("field-:rj:")).sendKeys("ahmadsahroni"+ Utils.randomNumber(2)+"@gmail.com");
+        // simpan email
         studentEmail = driver.findElement(By.id("field-:rj:")).getAttribute("value");
         // phone number
         driver.findElement(By.id("field-:rl:")).sendKeys("08"+ Utils.randomNumber(10));
@@ -246,6 +248,12 @@ public class AdmissionTest extends env_target {
 
         // validasi kalo data yang di approve sudah ada di master student
         wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//p[normalize-space()='" + studentFullName + "']")));
+
+        // simpan student id
+        studentId = driver.findElement(
+                By.xpath("//p[normalize-space()='" + studentFullName + "']/ancestor::tr//td[2]//span")
+        ).getText();
+        System.out.println("Student ID: " + studentId);
     }
 
     // reject mahasiswa
@@ -296,5 +304,112 @@ public class AdmissionTest extends env_target {
                 )
         ).getText();
         assertEquals("REJECTED", statusText);
+    }
+
+    // membuat akun
+    @Test
+    void createStudentAccount(){
+        createStudentData();
+        loginAsAdmin();
+        approveStudent();
+
+        // logout
+        driver.findElement(By.xpath("//p[text()='Admin Office']/ancestor::button")).click();
+        // tunggu sampai container menu list muncul
+        WebElement menuContainer = wait.until(
+                ExpectedConditions.visibilityOfElementLocated(
+                        By.xpath("//div[@role='menu' and contains(@class,'chakra-menu__menu-list')]")
+                )
+        );
+
+        // setelah container visible, klik tombol Sign Out
+        menuContainer.findElement(By.xpath(".//button[normalize-space()='Sign Out']")).click();
+
+        // validasi kalo udah di halaman login
+        wait.until(ExpectedConditions.urlToBe(baseUrl+"login"));
+        wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("root")));
+
+        // klik button get your email
+        wait.until(
+                ExpectedConditions.elementToBeClickable(By.xpath("//a[normalize-space()='Get Your Email']"))
+        ).click();
+
+        // validasi kalo udah di halaman get email
+        wait.until(ExpectedConditions.urlToBe(baseUrl+"get-email"));
+        wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("root")));
+
+        // isi Personal Email
+        WebElement emailField = wait.until(
+                ExpectedConditions.visibilityOfElementLocated(
+                        By.id("field-:r23:")
+                )
+        );
+        emailField.sendKeys(studentEmail);
+
+        // isi Student ID
+        WebElement nimField = wait.until(
+                ExpectedConditions.visibilityOfElementLocated(
+                        By.id("field-:r25:")
+                )
+        );
+        nimField.sendKeys(studentId);
+
+        // klik Verify Student Record
+        WebElement verifyBtn = wait.until(
+                ExpectedConditions.elementToBeClickable(
+                        By.xpath("//button[normalize-space()='Verify Student Record']")
+                )
+        );
+        verifyBtn.click();
+
+        // isi Username
+        WebElement usernameField = wait.until(
+                ExpectedConditions.visibilityOfElementLocated(
+                        By.xpath("//input[@type='text' and contains(@placeholder,'desired username')]")
+                )
+        );
+        usernameField.sendKeys(studentFullName.toLowerCase().replaceAll("\\s+", "") + "123");
+
+        // isi Password
+        WebElement passwordField = wait.until(
+                ExpectedConditions.visibilityOfElementLocated(
+                        By.xpath("//input[@type='password' and contains(@placeholder,'secure password')]")
+                )
+        );
+        passwordField.sendKeys("12345678");
+
+        // isi Confirm Password
+        WebElement confirmPasswordField = wait.until(
+                ExpectedConditions.visibilityOfElementLocated(
+                        By.xpath("//input[@type='password' and contains(@placeholder,'Confirm your password')]")
+                )
+        );
+        confirmPasswordField.sendKeys("12345678");
+
+        // klik tombol Create Campus Account
+        WebElement submitBtn = wait.until(
+                ExpectedConditions.elementToBeClickable(
+                        By.xpath("//button[normalize-space()='Create Campus Account']")
+                )
+        );
+        submitBtn.click();
+
+        // tunggu sampai alert sukses muncul
+        WebElement successAlert = wait.until(
+                ExpectedConditions.visibilityOfElementLocated(
+                        By.xpath("//h2[normalize-space()='Registration Successful!']")
+                )
+        );
+
+        // ambil teks email yang ditampilkan
+        String uniEmail = driver.findElement(
+                By.xpath("//p[contains(text(),'Your University Email:')]")
+        ).getText();
+
+        // validasi judul alert
+        assertEquals("Registration Successful!", successAlert.getText());
+
+
+
     }
 }
