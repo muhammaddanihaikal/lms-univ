@@ -19,10 +19,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class AdmissionTest extends env_target {
     private WebDriverWait wait;
-    private String studentFullName = "Ahmad Sahroni14";
-    private String studentEmail = "ahmadsahroni71@gmail.com";
-    private String applicationId = "REG2025831554";
-    private String studentId = "2373101718";
+    private String applicationId;
+    private String studentFullName;
+    private String studentEmail;
+    private String studentId;
 
     @BeforeEach
     void setUp() {
@@ -40,7 +40,7 @@ public class AdmissionTest extends env_target {
         wait = new WebDriverWait(driver, Duration.ofSeconds(10));
 
         // set zoom ke 75%
-        ((JavascriptExecutor) driver).executeScript("document.body.style.zoom='80%'");
+        ((JavascriptExecutor) driver).executeScript("document.body.style.zoom='70%'");
     }
 
     @AfterEach
@@ -61,6 +61,12 @@ public class AdmissionTest extends env_target {
         rejectStudent();
     }
 
+    @Test
+    void getEmail(){
+        createStudentAccount();
+    }
+
+    // ----------METHOD----------
     // membuat data mahasiswa
     void createStudentData(){
         // klik menu admission
@@ -74,7 +80,7 @@ public class AdmissionTest extends env_target {
         // full name
         driver.findElement(By.id("field-:r5:")).sendKeys("Ahmad Sahroni"+ Utils.randomNumber(2));
         // simpan fullName
-        studentFullName = driver.findElement(By.id("field-:r5:")).getAttribute("value");
+        this.studentFullName = driver.findElement(By.id("field-:r5:")).getAttribute("value");
         // nisn
         driver.findElement(By.id("field-:r7:")).sendKeys( Utils.randomNumber(8));
         // gender
@@ -90,7 +96,7 @@ public class AdmissionTest extends env_target {
         // email
         driver.findElement(By.id("field-:rj:")).sendKeys("ahmadsahroni"+ Utils.randomNumber(2)+"@gmail.com");
         // simpan email
-        studentEmail = driver.findElement(By.id("field-:rj:")).getAttribute("value");
+        this.studentEmail = driver.findElement(By.id("field-:rj:")).getAttribute("value");
         // phone number
         driver.findElement(By.id("field-:rl:")).sendKeys("08"+ Utils.randomNumber(10));
 
@@ -153,24 +159,10 @@ public class AdmissionTest extends env_target {
         Matcher matcher = pattern.matcher(toastDesc);
 
         // simpan Applicatoin ID
-        applicationId = matcher.find() ? matcher.group() : null;
+        this.applicationId = matcher.find() ? matcher.group() : null;
 
-        // hapus notifikasi
-        // pastikan toast muncul
-        wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("toast-1")));
-
-        // cari tombol close
-        WebElement closeBtn = wait.until(
-                ExpectedConditions.presenceOfElementLocated(
-                        By.xpath("//div[@id='toast-1']//button[@aria-label='Close']")
-                )
-        );
-
-        // klik pakai JS, kalo bandel (button tertutup icon, geser, dll)
-        Utils.clickForce(driver, closeBtn);
-
-        // validasi toast udah hilang
-        wait.until(ExpectedConditions.invisibilityOfElementLocated(By.id("toast-1")));
+        // hapus toast
+        Utils.closeAllToasts(driver, wait);
 
         // kembali ke login
         driver.findElement(By.xpath("//button[normalize-space()='Back to Login']")).click();
@@ -181,79 +173,95 @@ public class AdmissionTest extends env_target {
     }
 
     // login admin
-    void loginAsAdmin(){
-        // login ke admin
-        driver.findElement(By.id("username")).sendKeys("newadmin");
-        driver.findElement(By.id("password")).sendKeys("admin123");
-        wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//button[normalize-space()='Login']"))).click();
+    void loginAsAdmin() {
+        // tunggu input username siap diketik
+        WebElement username = wait.until(
+                ExpectedConditions.elementToBeClickable(By.id("username"))
+        );
 
-        // validasi kalo udah di halaman admin
-        wait.until(ExpectedConditions.urlToBe(baseUrl+"E-Campus/Adminoffice"));
+        // tunggu input password tampil
+        WebElement password = wait.until(
+                ExpectedConditions.visibilityOfElementLocated(By.id("password"))
+        );
+
+        // isi username admin
+        username.clear();
+        username.sendKeys("newadmin");
+
+        // isi password admin
+        password.clear();
+        password.sendKeys("admin123");
+
+        // klik tombol Login
+        wait.until(ExpectedConditions.elementToBeClickable(
+                By.xpath("//button[normalize-space()='Login']")
+        )).click();
+
+        // hapus toast
+        Utils.closeAllToasts(driver, wait);
+
+        // pastikan sudah masuk ke halaman Admin Office
+        wait.until(ExpectedConditions.urlToBe(baseUrl + "E-Campus/Adminoffice"));
         wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("root")));
     }
 
     // approve mahasiswa
-    void approveStudent(){
+    void approveStudent() {
+        // login admin
         loginAsAdmin();
 
-        // klik menu admission
-        By admissionHeader = By.xpath(
-                "//p[normalize-space()='Admission']/ancestor::div[contains(@class,'css-1lekzkb')]"
-        );
+        // buka menu Admission > Candidate List
+        By admissionHeader = By.xpath("//p[normalize-space()='Admission']/ancestor::div[contains(@class,'css-1lekzkb')]");
         wait.until(ExpectedConditions.elementToBeClickable(admissionHeader)).click();
 
-        // klik sub menu candidate list
-        By candidateList = By.xpath(
-                "//p[normalize-space()='Candidate List']/ancestor::a"
-        );
+        By candidateList = By.xpath("//p[normalize-space()='Candidate List']/ancestor::a");
         wait.until(ExpectedConditions.elementToBeClickable(candidateList)).click();
 
-        // klik button titik 3
-        By actionButton = By.xpath(
-                "//tr[td[normalize-space()='" + applicationId + "']]//button[@aria-label='Actions']"
-        );
-        wait.until(ExpectedConditions.elementToBeClickable(actionButton)).click();
+        // tangkap row berdasarkan Application ID
+        By rowLocator = By.xpath("//tr[td[normalize-space()='" + this.applicationId + "']]");
+        WebElement row = wait.until(ExpectedConditions.visibilityOfElementLocated(rowLocator));
 
-        // tunggu sampe pop up muncul
-        wait.until(ExpectedConditions.visibilityOfElementLocated(By.className("css-1u2cvaz")
+        // klik tombol actions di dalam row
+        WebElement actionBtn = wait.until(ExpectedConditions.elementToBeClickable(
+                row.findElement(By.xpath(".//button[@aria-label='Actions']"))
         ));
+        actionBtn.click();
 
-        // klik button update status
+        // buka popup update status > approve
+        wait.until(ExpectedConditions.visibilityOfElementLocated(By.className("css-1u2cvaz")));
         wait.until(ExpectedConditions.elementToBeClickable(
                 By.xpath("//button[.//span[normalize-space()='Update Status']]")
         )).click();
-
-        // klik button approve application
         wait.until(ExpectedConditions.elementToBeClickable(
                 By.xpath("//button[.//span[normalize-space()='Approve Application']]")
         )).click();
 
-        // validasi kalo datanya sudah hilang
-        wait.until(ExpectedConditions.invisibilityOfElementLocated(By.xpath("//tr[td[normalize-space()='" + applicationId + "']]")));
+        // hapus toast
+        Utils.closeAllToasts(driver, wait);
 
-        // klik menu master
+        // tunggu row hilang (DOM berubah)
+        wait.until(ExpectedConditions.stalenessOf(row));
+
+        // buka Master > Master Student
         wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//p[normalize-space()='Master']"))).click();
-
-        // klik menu master student
-        WebElement masterStudent = wait.until(
-                ExpectedConditions.elementToBeClickable(By.xpath("//a[.//p[normalize-space()='Master Student']]"))
-        );
+        WebElement masterStudent = wait.until(ExpectedConditions.elementToBeClickable(
+                By.xpath("//a[.//p[normalize-space()='Master Student']]")
+        ));
         Utils.clickForce(driver, masterStudent);
 
-        // validasi kalo udah didalem master student
-        wait.until(ExpectedConditions.urlToBe(baseUrl+"E-Campus/Adminoffice/master/student"));
+        // validasi halaman Master Student
+        wait.until(ExpectedConditions.urlContains("/E-Campus/Adminoffice/master/student"));
+        wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//h2[normalize-space()='Master Student']")));
+
+        // pastikan nama mahasiswa muncul
         wait.until(ExpectedConditions.visibilityOfElementLocated(
-                By.xpath("//h2[normalize-space()='Master Student']")
-        ));
+                By.xpath("//p[normalize-space()='" + this.studentFullName + "']")));
 
-        // validasi kalo data yang di approve sudah ada di master student
-        wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//p[normalize-space()='" + studentFullName + "']")));
-
-        // simpan student id
-        studentId = driver.findElement(
-                By.xpath("//p[normalize-space()='" + studentFullName + "']/ancestor::tr//td[2]//span")
+        // ambil Student ID
+        this.studentId = driver.findElement(
+                By.xpath("//p[normalize-space()='" + this.studentFullName + "']/ancestor::tr//td[2]//span")
         ).getText();
-        System.out.println("Student ID: " + studentId);
+
     }
 
     // reject mahasiswa
@@ -274,7 +282,7 @@ public class AdmissionTest extends env_target {
 
         // klik button titik 3
         By actionButton = By.xpath(
-                "//tr[td[normalize-space()='" + applicationId + "']]//button[@aria-label='Actions']"
+                "//tr[td[normalize-space()='" + this.applicationId + "']]//button[@aria-label='Actions']"
         );
         wait.until(ExpectedConditions.elementToBeClickable(actionButton)).click();
 
@@ -294,24 +302,21 @@ public class AdmissionTest extends env_target {
 
         // tunggu sampe statusnya berubah
         wait.until(ExpectedConditions.textToBe(By.xpath(
-                "//tr[td[normalize-space()='"+applicationId+"']]//td[6]//span"
+                "//tr[td[normalize-space()='"+this.applicationId+"']]//td[6]//span"
         ), "REJECTED"));
 
         // validasi reject application
         String statusText = wait.until(
                 ExpectedConditions.visibilityOfElementLocated(
-                        By.xpath("//tr[td[normalize-space()='" + applicationId + "']]//td[6]//span")
+                        By.xpath("//tr[td[normalize-space()='" + this.applicationId + "']]//td[6]//span")
                 )
         ).getText();
         assertEquals("REJECTED", statusText);
     }
 
-    // membuat akun
-    @Test
+    // membuat akun / get-email
     void createStudentAccount(){
-        createStudentData();
-        loginAsAdmin();
-        approveStudent();
+        admissionApproveCandidate();
 
         // logout
         driver.findElement(By.xpath("//p[text()='Admin Office']/ancestor::button")).click();
@@ -341,7 +346,7 @@ public class AdmissionTest extends env_target {
         // isi Personal Email
         WebElement emailField = wait.until(
                 ExpectedConditions.visibilityOfElementLocated(
-                        By.id("field-:r23:")
+                        By.xpath("//input[@type='email' and contains(@placeholder,'personal email')]")
                 )
         );
         emailField.sendKeys(studentEmail);
@@ -349,10 +354,13 @@ public class AdmissionTest extends env_target {
         // isi Student ID
         WebElement nimField = wait.until(
                 ExpectedConditions.visibilityOfElementLocated(
-                        By.id("field-:r25:")
+                        By.xpath("//input[@type='text' and contains(@placeholder,'student ID')]")
                 )
         );
         nimField.sendKeys(studentId);
+
+        // hapus toast
+        Utils.closeAllToasts(driver, wait);
 
         // klik Verify Student Record
         WebElement verifyBtn = wait.until(
@@ -386,6 +394,7 @@ public class AdmissionTest extends env_target {
         );
         confirmPasswordField.sendKeys("12345678");
 
+
         // klik tombol Create Campus Account
         WebElement submitBtn = wait.until(
                 ExpectedConditions.elementToBeClickable(
@@ -400,14 +409,11 @@ public class AdmissionTest extends env_target {
                         By.xpath("//h2[normalize-space()='Registration Successful!']")
                 )
         );
-
-        // ambil teks email yang ditampilkan
-        String uniEmail = driver.findElement(
-                By.xpath("//p[contains(text(),'Your University Email:')]")
-        ).getText();
-
         // validasi judul alert
         assertEquals("Registration Successful!", successAlert.getText());
+
+        // kurang validasi kalo emailnya itu bener
+        // misal "nama@university.edu.ac.id" bukan "username@univesity.edu.ac.id"
 
 
 
