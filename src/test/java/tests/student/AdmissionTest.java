@@ -1,3 +1,5 @@
+package tests.student;
+
 import config.env_target;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -10,6 +12,7 @@ import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
+import utils.Utils;
 
 import java.time.Duration;
 import java.util.regex.Matcher;
@@ -27,7 +30,7 @@ public class AdmissionTest extends env_target {
     @BeforeEach
     void setUp() {
         // setup driver chrome
-        System.setProperty("webdriver.chrome.driver", "src\\main\\resources\\drivers\\chromedriver.exe");
+        System.setProperty("webdriver.chrome.driver", "src\\test\\resources\\drivers\\chromedriver.exe");
         ChromeOptions options = new ChromeOptions();
         options.addArguments("--incognito", "--disable-save-password-bubble");
         driver = new ChromeDriver(options);
@@ -62,7 +65,7 @@ public class AdmissionTest extends env_target {
     }
 
     @Test
-    void getEmail(){
+    void getEmailStudent(){
         createStudentAccount();
     }
 
@@ -132,7 +135,7 @@ public class AdmissionTest extends env_target {
         new Select(driver.findElement(By.id("field-:r1d:"))).selectByIndex(1);
 
         //--- supporting documents ---
-        String pathTestFilePdf = "C:\\Users\\acer\\IdeaProjects\\lms-univ\\src\\main\\resources\\test-files\\test-pdf.pdf";
+        String pathTestFilePdf = "C:\\Users\\acer\\IdeaProjects\\lms-univ\\src\\test\\resources\\test-files\\test-pdf.pdf";
         // academic transcript
         driver.findElement(By.id("field-:r1f:")).sendKeys(pathTestFilePdf);
         // diploma/graduation certificate
