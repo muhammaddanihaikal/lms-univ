@@ -66,7 +66,7 @@ public class AdmissionTest extends env_target {
         createStudentAccount();
     }
 
-    // ----------METHOD----------
+    // ---METHOD ADMISSION---
     // membuat data mahasiswa
     void createStudentData(){
         // klik menu admission
@@ -314,10 +314,193 @@ public class AdmissionTest extends env_target {
         assertEquals("REJECTED", statusText);
     }
 
-    // membuat akun / get-email
+    // ---METHOD GET EMAIL STUDENT---
+    // membuat akun / get-email mahasiswa
     void createStudentAccount(){
         admissionApproveCandidate();
 
+        // logout
+        driver.findElement(By.xpath("//p[text()='Admin Office']/ancestor::button")).click();
+        // tunggu sampai container menu list muncul
+        WebElement menuContainer = wait.until(
+                ExpectedConditions.visibilityOfElementLocated(
+                        By.xpath("//div[@role='menu' and contains(@class,'chakra-menu__menu-list')]")
+                )
+        );
+
+        // setelah container visible, klik tombol Sign Out
+        menuContainer.findElement(By.xpath(".//button[normalize-space()='Sign Out']")).click();
+
+        // validasi kalo udah di halaman login
+        wait.until(ExpectedConditions.urlToBe(baseUrl+"login"));
+        wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("root")));
+
+        // klik button get your email
+        wait.until(
+                ExpectedConditions.elementToBeClickable(By.xpath("//a[normalize-space()='Get Your Email']"))
+        ).click();
+
+        // validasi kalo udah di halaman get email
+        wait.until(ExpectedConditions.urlToBe(baseUrl+"get-email"));
+        wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("root")));
+
+        // isi Personal Email
+        WebElement emailField = wait.until(
+                ExpectedConditions.visibilityOfElementLocated(
+                        By.xpath("//input[@type='email' and contains(@placeholder,'personal email')]")
+                )
+        );
+        emailField.sendKeys(studentEmail);
+
+        // isi Student ID
+        WebElement nimField = wait.until(
+                ExpectedConditions.visibilityOfElementLocated(
+                        By.xpath("//input[@type='text' and contains(@placeholder,'student ID')]")
+                )
+        );
+        nimField.sendKeys(studentId);
+
+        // hapus toast
+        Utils.closeAllToasts(driver, wait);
+
+        // klik Verify Student Record
+        WebElement verifyBtn = wait.until(
+                ExpectedConditions.elementToBeClickable(
+                        By.xpath("//button[normalize-space()='Verify Student Record']")
+                )
+        );
+        verifyBtn.click();
+
+        // isi Username
+        WebElement usernameField = wait.until(
+                ExpectedConditions.visibilityOfElementLocated(
+                        By.xpath("//input[@type='text' and contains(@placeholder,'desired username')]")
+                )
+        );
+        usernameField.sendKeys(studentFullName.toLowerCase().replaceAll("\\s+", "") + "123");
+
+        // isi Password
+        WebElement passwordField = wait.until(
+                ExpectedConditions.visibilityOfElementLocated(
+                        By.xpath("//input[@type='password' and contains(@placeholder,'secure password')]")
+                )
+        );
+        passwordField.sendKeys("12345678");
+
+        // isi Confirm Password
+        WebElement confirmPasswordField = wait.until(
+                ExpectedConditions.visibilityOfElementLocated(
+                        By.xpath("//input[@type='password' and contains(@placeholder,'Confirm your password')]")
+                )
+        );
+        confirmPasswordField.sendKeys("12345678");
+
+
+        // klik tombol Create Campus Account
+        WebElement submitBtn = wait.until(
+                ExpectedConditions.elementToBeClickable(
+                        By.xpath("//button[normalize-space()='Create Campus Account']")
+                )
+        );
+        submitBtn.click();
+
+        // tunggu sampai alert sukses muncul
+        WebElement successAlert = wait.until(
+                ExpectedConditions.visibilityOfElementLocated(
+                        By.xpath("//h2[normalize-space()='Registration Successful!']")
+                )
+        );
+        // validasi judul alert
+        assertEquals("Registration Successful!", successAlert.getText());
+
+        // kurang validasi kalo emailnya itu bener
+        // misal "nama@university.edu.ac.id" bukan "username@univesity.edu.ac.id"
+
+
+
+    }
+
+    // ---METHOD GET EMAIL LECTURER---
+    // tambah data lecturer
+    @Test
+    void addLecturer(){
+        loginAsAdmin();
+
+        // buka Master > Master Student
+        wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//p[normalize-space()='Master']"))).click();
+        WebElement masterStudent = wait.until(ExpectedConditions.elementToBeClickable(
+                By.xpath("//a[.//p[normalize-space()='Master Lecturer']]")
+        ));
+        Utils.clickForce(driver, masterStudent);
+
+        // validasi halaman Master Lecturer
+        wait.until(ExpectedConditions.urlContains("/E-Campus/Adminoffice/master/lecturer"));
+        wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//h2[normalize-space()='Master Lecturer']")));
+
+        // klik button add lecturer
+        driver.findElement(By.xpath("//button[normalize-space()='Add Lecturer']")).click();
+
+        // tunggu modal form muncul
+        wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//section[@role='dialog' and .//header[normalize-space()='Add New Lecturer']]")));
+
+        // Lecturer Name
+        driver.findElement(By.name("name"))
+                .sendKeys("Lecturer Ahmad Sahroni" + Utils.randomNumber(2));
+
+        // Email
+        driver.findElement(By.name("email"))
+                .sendKeys("ahmadsahroni" + Utils.randomNumber(3) + "@mail.com");
+
+        // Phone Number
+        driver.findElement(By.name("phone"))
+                .sendKeys("0812" + Utils.randomNumber(8));
+
+        // Employee ID
+        driver.findElement(By.name("employee_id"))
+                .sendKeys("EMP" + Utils.randomNumber(5));
+
+        // Gender
+        Select genderSelect = new Select(driver.findElement(By.name("gender")));
+        genderSelect.selectByIndex(1); // index 1 = pilihan kedua
+
+        // Religion
+        Select religionSelect = new Select(driver.findElement(By.name("religion")));
+        religionSelect.selectByIndex(1);
+
+        // Date of Birth
+        driver.findElement(By.name("date_of_birth"))
+                .sendKeys("2001-01-01");
+
+        // Place of Birth
+        driver.findElement(By.name("place_of_birth"))
+                .sendKeys("DKI Jakarta");
+
+        // Status
+        Select statusSelect = new Select(driver.findElement(By.name("status")));
+        statusSelect.selectByIndex(0);
+
+        // Faculty
+        Select facultySelect = new Select(driver.findElement(By.name("faculty")));
+        facultySelect.selectByIndex(1);
+
+        // Department
+        Select departmentSelect = new Select(driver.findElement(By.name("department")));
+        departmentSelect.selectByIndex(1);
+
+        // Courses
+        //Select courseSelect = new Select(driver.findElement(By.name("courses")));
+        //courseSelect.selectByIndex(1);
+
+        // klik button save
+
+        WebElement buttonSave = driver.findElement(By.xpath("//button[normalize-space()='Save']"));
+        Utils.clickForce(driver, buttonSave);
+    }
+
+    void deleteLecturer(){}
+
+    // membuat akun / get-email dosen
+    void createLecturerAccount(){
         // logout
         driver.findElement(By.xpath("//p[text()='Admin Office']/ancestor::button")).click();
         // tunggu sampai container menu list muncul
