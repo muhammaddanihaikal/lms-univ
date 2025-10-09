@@ -2,9 +2,7 @@ import config.env_target;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.openqa.selenium.By;
-import org.openqa.selenium.JavascriptExecutor;
-import org.openqa.selenium.WebElement;
+import org.openqa.selenium.*;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
@@ -16,13 +14,14 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class AdmissionTest extends env_target {
     private WebDriverWait wait;
     private String applicationId;
-    private String studentFullName;
-    private String studentEmail;
-    private String studentId;
+    private String studentFullName = "Ahmad Sahroni07";
+    private String studentEmail = "ahmadsahroni54@gmail.com";
+    private String studentId = "2379558689";
 
     @BeforeEach
     void setUp() {
@@ -46,10 +45,10 @@ public class AdmissionTest extends env_target {
     @AfterEach
     void tearDown() {
         // tutup browser
-         if (driver != null) driver.quit();
+        // if (driver != null) driver.quit();
     }
 
-    @Test
+
     void admissionApproveCandidate(){
         createStudentData();
         approveStudent();
@@ -68,6 +67,7 @@ public class AdmissionTest extends env_target {
 
     // ---METHOD ADMISSION---
     // membuat data mahasiswa
+    @Test
     void createStudentData(){
         // klik menu admission
         wait.until(ExpectedConditions.elementToBeClickable(By.linkText("Admission"))).click();
@@ -206,6 +206,7 @@ public class AdmissionTest extends env_target {
     }
 
     // approve mahasiswa
+
     void approveStudent() {
         // login admin
         loginAsAdmin();
@@ -228,7 +229,7 @@ public class AdmissionTest extends env_target {
         actionBtn.click();
 
         // buka popup update status > approve
-        wait.until(ExpectedConditions.visibilityOfElementLocated(By.className("css-1u2cvaz")));
+        wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//section[@role='dialog']")));
         wait.until(ExpectedConditions.elementToBeClickable(
                 By.xpath("//button[.//span[normalize-space()='Update Status']]")
         )).click();
@@ -449,15 +450,17 @@ public class AdmissionTest extends env_target {
 
         // Email
         driver.findElement(By.name("email"))
-                .sendKeys("ahmadsahroni" + Utils.randomNumber(3) + "@mail.com");
+                .sendKeys("lecturerahmadsahroni" + Utils.randomNumber(3) + "@mail.com");
 
         // Phone Number
         driver.findElement(By.name("phone"))
                 .sendKeys("0812" + Utils.randomNumber(8));
 
         // Employee ID
-        driver.findElement(By.name("employee_id"))
-                .sendKeys("EMP" + Utils.randomNumber(5));
+        driver.findElement(By.xpath("//button[normalize-space()='Generate']")).click();
+        // tunggu sampe inputan terisi
+        wait.until(driver -> !driver.findElement(By.name("employee_id")).getAttribute("value").isEmpty());
+
 
         // Gender
         Select genderSelect = new Select(driver.findElement(By.name("gender")));
@@ -481,25 +484,22 @@ public class AdmissionTest extends env_target {
 
         // Faculty
         Select facultySelect = new Select(driver.findElement(By.name("faculty")));
-        facultySelect.selectByIndex(1);
+        facultySelect.selectByIndex(2);
 
         // Department
         Select departmentSelect = new Select(driver.findElement(By.name("department")));
         departmentSelect.selectByIndex(1);
 
         // Courses
-        //Select courseSelect = new Select(driver.findElement(By.name("courses")));
-        //courseSelect.selectByIndex(1);
+        Select courseSelect = new Select(driver.findElement(By.name("courses")));
+        courseSelect.selectByIndex(1);
 
         // klik button save
-
         WebElement buttonSave = driver.findElement(By.xpath("//button[normalize-space()='Save']"));
         Utils.clickForce(driver, buttonSave);
     }
 
-    void deleteLecturer(){}
-
-    // membuat akun / get-email dosen
+    // membuat akun / get-email kaprodi
     void createLecturerAccount(){
         // logout
         driver.findElement(By.xpath("//p[text()='Admin Office']/ancestor::button")).click();
@@ -600,5 +600,83 @@ public class AdmissionTest extends env_target {
 
 
 
+    }
+
+    // ---METHOD GET EMAIL LECTURER---
+    // tambah data lecturer
+    @Test
+    void addKaprodi(){
+        loginAsAdmin();
+
+        // buka Master > Master Student
+        wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//p[normalize-space()='Master']"))).click();
+        WebElement masterStudent = wait.until(ExpectedConditions.elementToBeClickable(
+                By.xpath("//a[.//p[normalize-space()='Master Kaprodi']]")
+        ));
+        Utils.clickForce(driver, masterStudent);
+
+        // validasi halaman Master Lecturer
+        wait.until(ExpectedConditions.urlContains("/E-Campus/Adminoffice/master/kaprodi"));
+        wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//h2[normalize-space()='Master Kaprodi']")));
+
+        // klik button add lecturer
+        driver.findElement(By.xpath("//button[normalize-space()='Add Kaprodi']")).click();
+
+        // tunggu modal form muncul
+        wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//section[@role='dialog' and .//header[normalize-space()='Add New Kaprodi']]")));
+
+        // Kaprodi Name
+        driver.findElement(By.name("name"))
+                .sendKeys("Lecturer Ahmad Sahroni" + Utils.randomNumber(2));
+
+        // Email
+        driver.findElement(By.name("email"))
+                .sendKeys("lecturerahmadsahroni" + Utils.randomNumber(3) + "@mail.com");
+
+        // Phone Number
+        driver.findElement(By.name("phone"))
+                .sendKeys("0812" + Utils.randomNumber(8));
+
+        // Employee ID
+        WebElement generateButton = driver.findElement(By.xpath("//button[normalize-space()='Generate']"));
+        Utils.clickForce(driver, generateButton);
+        // tunggu sampe inputan terisi
+        wait.until(driver -> !driver.findElement(By.name("employee_id")).getAttribute("value").isEmpty());
+
+        // Entry Year
+        driver.findElement(By.name("entry_year"))
+                .sendKeys("2025");
+
+        // Gender
+        Select genderSelect = new Select(driver.findElement(By.name("gender")));
+        genderSelect.selectByIndex(1);
+
+        // religion
+        Select religionSelect = new Select(driver.findElement(By.name("religion")));
+        religionSelect.selectByIndex(1);
+
+        // Date of Birth
+        driver.findElement(By.name("date_of_birth"))
+                .sendKeys("2001-01-01");
+
+        // Place Of Birth
+        driver.findElement(By.name("place_of_birth"))
+                .sendKeys("DKI Jakarta");
+
+        // Status
+        Select statusSelect = new Select(driver.findElement(By.name("status")));
+        statusSelect.selectByIndex(0);
+
+        // Faculty
+        Select facultySelect = new Select(driver.findElement(By.name("faculty")));
+        facultySelect.selectByIndex(1);
+
+        // Department
+        //Select departmentSelect = new Select(driver.findElement(By.name("department")));
+        //departmentSelect.selectByIndex(1);
+
+        // klik button save
+        WebElement buttonSave = driver.findElement(By.xpath("//button[normalize-space()='Save']"));
+        Utils.clickForce(driver, buttonSave);
     }
 }
